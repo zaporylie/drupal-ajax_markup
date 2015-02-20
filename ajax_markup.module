@@ -32,12 +32,15 @@ function ajax_markup_permission() {
 function ajax_markup_library() {
   $libraries['ajax_markup'] = array(
     'title' => 'Ajax Markup',
+    'version' => '2.x',
     'js' => array(
       array(
         'type' => 'setting',
         'data' => array(
-          'url' => url('ajax-markup'),
-          'token' => drupal_get_token('ajax-markup'),
+          'ajaxMarkup' => array(
+            'url' => url('ajax-markup'),
+            'token' => drupal_get_token('ajax-markup'),
+          ),
         ),
       ),
       drupal_get_path('module', 'ajax_markup') . '/ajax_markup.js' => array(),
