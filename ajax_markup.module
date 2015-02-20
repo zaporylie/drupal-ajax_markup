@@ -8,6 +8,8 @@ function ajax_markup_menu() {
   $items['ajax-markup'] = array(
     'page callback' => 'ajax_markup',
     'access callback' => 'ajax_markup_access',
+    'access arguments' => array('access ajax markup'),
+    'delivery callback' => 'drupal_json_output',
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -25,10 +27,45 @@ function ajax_markup_permission() {
 }
 
 /**
+ * Implements hook_library().
+ */
+function ajax_markup_library() {
+  $libraries['ajax_markup'] = array(
+    'title' => 'Ajax Markup',
+    'js' => array(
+      array(
+        'type' => 'setting',
+        'data' => array(
+          'url' => url('ajax-markup'),
+          'token' => drupal_get_token('ajax-markup'),
+        ),
+      ),
+      drupal_get_path('module', 'ajax_markup') . '/ajax_markup.js' => array(),
+    ),
+  );
+  return $libraries;
+}
+
+/**
  * Checks ajax markup access.
  */
-function ajax_markup_access() {
-  return user_access('access ajax markup') && isset($_POST['token']) && drupal_valid_token($_POST['token'], 'ajax-markup', TRUE);
+function ajax_markup_access($string, $account = NULL) {
+  if (!user_access($string, $account)) {
+    return FALSE;
+  }
+  if (!isset($_POST['token'])) {
+    return FALSE;
+  }
+  if (!isset($_POST['input']) || !is_string($_POST['input'])) {
+    return FALSE;
+  }
+  if (!isset($_POST['format']) || empty($_POST['format'])) {
+    return FALSE;
+  }
+  if (drupal_valid_token($_POST['token'], 'ajax-markup', TRUE)) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**
@@ -36,39 +73,14 @@ function ajax_markup_access() {
  */
 function ajax_markup() {
   $output = '';
-  if (isset($_POST['input']) && is_string($_POST['input'])) {
-    if (!empty($_POST['format'])) {
-      if ($format = filter_format_load($_POST['format'])) {
-        if (filter_access($format, $GLOBALS['user'])) {
-          $format_id = $format->format;
-        }
-      }
-    }
-    if (!isset($format_id)) {
-      $format_id = filter_fallback_format();
-    }
-    $output = check_markup($_POST['input'], $format_id);
+  if (($format = filter_format_load($_POST['format'])) && filter_access($format)) {
+    $format_id = $format->format;
   }
-  drupal_json_output(array('output' => $output));
-  exit();
-}
-
-/**
- * Loads API files and settings.
- */
-function ajax_markup_on() {
-  static $state;
-  if (isset($state)) {
-    return $state;
+  else {
+    $format_id = filter_fallback_format();
   }
-  if (!user_access('access ajax markup')) {
-    return $state = FALSE;
-  }
-  drupal_add_js(drupal_get_path('module', 'ajax_markup') . '/ajax_markup.js');
-  $settings['ajaxMarkup'] = array(
-    'url' => url('ajax-markup'),
-    'token' => drupal_get_token('ajax-markup'),
+  $output = check_markup($_POST['input'], $format_id);
+  return array(
+    'output' => $output,
   );
-  drupal_add_js($settings, 'setting');
-  return $state = TRUE;
 }
