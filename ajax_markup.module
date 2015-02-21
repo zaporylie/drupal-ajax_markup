@@ -32,7 +32,7 @@ function ajax_markup_permission() {
 function ajax_markup_library() {
   $libraries['ajax_markup'] = array(
     'title' => 'Ajax Markup',
-    'version' => '2.x',
+    'version' => '1.x',
     'js' => array(
       array(
         'type' => 'setting',
@@ -86,4 +86,20 @@ function ajax_markup() {
   return array(
     'output' => $output,
   );
+}
+
+/**
+ * Loads API files and settings.
+ *
+ * This function is here due to the backward compatibility. For new project use:
+ * $element['#attached']['library'][] = array('ajax_markup', 'ajax_markup');
+ */
+function ajax_markup_on() {
+  if (!user_access('access ajax markup')) {
+    return FALSE;
+  }
+  if ($return = drupal_add_library('ajax_markup', 'ajax_markup')) {
+    return TRUE;
+  }
+  return FALSE;
 }
