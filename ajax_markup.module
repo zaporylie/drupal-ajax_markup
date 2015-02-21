@@ -30,7 +30,7 @@ function ajax_markup_permission() {
  * Implements hook_library().
  */
 function ajax_markup_library() {
-  $libraries['ajax_markup'] = array(
+  $libraries['jquery.ajaxMarkup'] = array(
     'title' => 'Ajax Markup',
     'version' => '1.x',
     'js' => array(
